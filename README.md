@@ -27,7 +27,7 @@ Los correos automáticos incluyen el logo de GarantiaYA, colores institucionales
 
 ## 👩‍💻 Autora
 
-**Lizmar Ilianet Cottua**  
+**Lizmar Cottua**  
 Team Leader – Canal No Tradicional  
 📧 [lcottua@gmail.com](mailto:lcottua@gmail.com)
 
