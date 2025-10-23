@@ -1,0 +1,149 @@
+{
+  "name": "Gestion diaria CNT",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": null
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f88f9ce4-da51-4405-86fb-d8c739c9f1fa",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Fecha",
+              "lookupValue": "=23/10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "baec78be-c8ca-4e0d-bb15-a67ffdd47657",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "j8jdmIx36AQ9WCa3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener datos desde el nodo anterior\nconst rows = items.map(item => item.json);\n\n// Agrupar por asesora\nconst resumen = {};\nfor (const row of rows) {\n  const asesora = row.Asesora.trim();\n  if (!resumen[asesora]) {\n    resumen[asesora] = { Refe: 0, PA: 0, Aprob: 0, Ventas: 0 };\n  }\n  resumen[asesora].Refe += Number(row.Referidos || 0);\n  resumen[asesora].PA += Number(row[\"Enviados a PA\"] || 0);\n  resumen[asesora].Aprob += Number(row.Aprobados || 0);\n  resumen[asesora].Ventas += Number(row.Ventas || 0);\n}\n\n// Calcular totales\nconst total = { Refe: 0, PA: 0, Aprob: 0, Ventas: 0 };\nfor (const a in resumen) {\n  total.Refe += resumen[a].Refe;\n  total.PA += resumen[a].PA;\n  total.Aprob += resumen[a].Aprob;\n  total.Ventas += resumen[a].Ventas;\n}\n\n// Crear HTML bonito\nlet html = `<h2>📊 Resumen de gestión – 22/10 </h2>`;\n\nfor (const asesora in resumen) {\n  const r = resumen[asesora];\n  html += `\n  <p>💬 <strong>${asesora}</strong><br>\n  👥 Referidos: <b>${r.Refe}</b><br>\n  📤 Enviados a PA: <b>${r.PA}</b><br>\n  ✅ Aprobados: <b>${r.Aprob}</b><br>\n  💰 Ventas: <b>${r.Ventas}</b></p>`;\n}\n\nhtml += `<hr><h3>✨ Totales del día:</h3>\n<p>👥 <b>${total.Refe}</b> referidos<br>\n📤 <b>${total.PA}</b> enviados a PA<br>\n✅ <b>${total.Aprob}</b> aprobados<br>\n💰 <b>${total.Ventas}</b> ventas</p>\n<p>🔥 ¡Excelente trabajo equipo! Sigamos sumando. 💪</p>`;\n\nreturn [{ json: { html, total } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "dd8bf403-934d-4e42-9376-d0212363152c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "Resumen de gestión 22-10",
+        "message": "={{ $json[\"html\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "9656036c-f812-4116-82db-3e9e7e5bc40d",
+      "name": "Send a message",
+      "webhookId": "f6ad69b9-c238-45a4-9e48-17bffb401632",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XxrLXTbFwtjLW15c",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "299b9998-2d15-4c59-8937-64756f1e4f38",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c4316da3955a84220b9791dc95d8bdfc95a3051810fe38a4e771cc112fc1987"
+  },
+  "id": "e5nLwPbNdEA9IDV9",
+  "tags": []
+}

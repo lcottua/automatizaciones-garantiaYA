@@ -1,0 +1,153 @@
+{
+  "name": "Gestion Semanal CNT",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8,
+              "triggerAtMinute": null
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "260635ee-8ae1-4e84-8960-65685c615e2a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 688710582,
+          "mode": "list",
+          "cachedResultName": "Gestion semanal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=688710582"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Semana",
+              "lookupValue": "=13/10-19/10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "509197f3-1f33-43d8-96df-ab7c7f8e1337",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "j8jdmIx36AQ9WCa3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ====== CONFIGURACIÓN GENERAL ======\n\n// Frases motivacionales aleatorias 💬\nconst frases = [\n  \"🔥 Lo estás haciendo excelente, no bajes el ritmo.\",\n  \"✨ Constancia y foco, que los resultados ya se notan.\",\n  \"🚀 Semana nueva, oportunidades nuevas.\",\n  \"💪 Gran progreso, sigamos construyendo resultados.\",\n  \"🌟 Orgullosa del esfuerzo que están poniendo, sigamos así.\"\n];\n\n// ====== FECHAS ======\nconst hoy = new Date();\nconst inicioSemana = new Date(hoy);\ninicioSemana.setDate(hoy.getDate() - 7); // lunes anterior\nconst finSemana = new Date(hoy);\nfinSemana.setDate(hoy.getDate() - 1); // domingo anterior\n\nfunction formatDate(date) {\n  return date.toLocaleDateString('es-AR', { day: '2-digit', month: 'long' });\n}\n\n// ====== COLORES Y ESTILO ======\nconst colorPrincipal = \"#2C5EFF\";\nconst colorSecundario = \"#F5F7FF\";\nconst colorTexto = \"#333\";\nconst colorLinea = \"#e0e0e0\";\n\n// 💡 Inserta aquí el link del logo de GarantiaYA:\nconst logoURL = \"https://drive.google.com/uc?export=view&id=1C7pT48gOgb3b3KhtxxEOQDqwTRnECQ3K\";\n\n// ====== DATOS ======\nconst rows = items.map(i => i.json);\nconst correos = [];\n\n// ====== INICIO DEL RESUMEN GENERAL ======\nlet resumenEquipo = `\n<body style=\"font-family: 'Segoe UI', Arial, sans-serif; background:${colorSecundario}; padding:20px; color:${colorTexto};\">\n  <table style=\"max-width:600px; margin:auto; background:white; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.08); padding:24px;\">\n    <tr>\n      <td style=\"text-align:center;\">\n        <img src=\"${logoURL}\" alt=\"GarantiaYA\" style=\"height:50px; margin-bottom:10px;\">\n        <h2 style=\"color:${colorPrincipal}; margin-bottom:4px;\">💼 Resumen general – Equipo CNT</h2>\n        <p style=\"margin:0; font-size:14px; color:#666;\">Semana ${formatDate(inicioSemana)} al ${formatDate(finSemana)}</p>\n      </td>\n    </tr>\n    <tr><td><hr style=\"border:0; border-top:1px solid ${colorLinea}; margin:16px 0;\"></td></tr>`;\n\n// ====== CÁLCULO DE TOTALES ======\nlet totalEsperado = { Leads: 0, PA: 0, Ventas: 0 };\nlet totalRealizado = { Leads: 0, PA: 0, Ventas: 0 };\n\nfor (const d of rows) {\n  totalEsperado.Leads += Number(d[\"Leads Esperado\"] || 0);\n  totalEsperado.PA += Number(d[\"PA Esperado\"] || 0);\n  totalEsperado.Ventas += Number(d[\"Ventas Esperado\"] || 0);\n\n  totalRealizado.Leads += Number(d[\"Leads Realizados\"] || 0);\n  totalRealizado.PA += Number(d[\"PA Realizados\"] || 0);\n  totalRealizado.Ventas += Number(d[\"Ventas Realizadas\"] || 0);\n}\n\nconst totalLeadsPerc = ((totalRealizado.Leads / totalEsperado.Leads) * 100).toFixed(0);\nconst totalPAPerc = ((totalRealizado.PA / totalEsperado.PA) * 100).toFixed(0);\nconst totalVentasPerc = ((totalRealizado.Ventas / totalEsperado.Ventas) * 100).toFixed(0);\n\n// ====== CORREOS INDIVIDUALES ======\nfor (const d of rows) {\n  const asesora = d.Asesora;\n  const leadsPerc = ((d[\"Leads Realizados\"] / d[\"Leads Esperado\"]) * 100).toFixed(0);\n  const paPerc = ((d[\"PA Realizados\"] / d[\"PA Esperado\"]) * 100).toFixed(0);\n  const ventasPerc = ((d[\"Ventas Realizadas\"] / d[\"Ventas Esperado\"]) * 100).toFixed(0);\n  const frase = frases[Math.floor(Math.random() * frases.length)];\n\n  const html = `\n  <body style=\"font-family: 'Segoe UI', Arial, sans-serif; background:${colorSecundario}; padding:20px; color:${colorTexto};\">\n    <table style=\"max-width:600px; margin:auto; background:white; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.08); padding:24px;\">\n      <tr>\n        <td style=\"text-align:center;\">\n          <img src=\"${logoURL}\" alt=\"GarantiaYA\" style=\"height:50px; margin-bottom:10px;\">\n          <h2 style=\"color:${colorPrincipal}; margin-bottom:4px;\">📈 Reporte semanal – Equipo CNT</h2>\n          <p style=\"margin:0; font-size:14px; color:#666;\">Semana ${formatDate(inicioSemana)} al ${formatDate(finSemana)}</p>\n        </td>\n      </tr>\n      <tr><td><hr style=\"border:0; border-top:1px solid ${colorLinea}; margin:16px 0;\"></td></tr>\n      <tr><td>\n        <p style=\"font-size:16px;\">🌞 Hola <b>${asesora}</b>!</p>\n        <p style=\"margin-bottom:8px;\">👉 <b>Resumen de la semana pasada:</b><br>\n        Esperado: ${d[\"Leads Esperado\"]} Leads | ${d[\"PA Esperado\"]} PA | ${d[\"Ventas Esperado\"]} Ventas<br>\n        Realizado: ${d[\"Leads Realizados\"]} Leads | ${d[\"PA Realizados\"]} PA | ${d[\"Ventas Realizadas\"]} Ventas</p>\n\n        <div style=\"background:${colorSecundario}; border-radius:10px; padding:10px; margin:10px 0;\">\n          <p style=\"margin:0 0 4px 0;\"><b>✅ Cumplimiento:</b></p>\n          <p style=\"margin:2px 0;\">📥 Leads: <b>${leadsPerc}%</b></p>\n          <p style=\"margin:2px 0;\">📤 PA: <b>${paPerc}%</b></p>\n          <p style=\"margin:2px 0;\">💰 Ventas: <b>${ventasPerc}%</b></p>\n        </div>\n\n        <p style=\"margin:10px 0;\">${d.Comentario || \"\"}</p>\n        <p style=\"font-style:italic; color:${colorPrincipal};\">${frase}</p>\n        <p>💪 Vamos con todo esta semana 🚀</p>\n      </td></tr>\n      <tr><td><hr style=\"border:0; border-top:1px solid ${colorLinea}; margin:16px 0;\"></td></tr>\n      <tr><td style=\"text-align:center; font-size:12px; color:#999;\">\n        Reporte automatizado de <b>GarantiaYA – Canal No Tradicional</b><br>\n        ${new Date().toLocaleDateString('es-AR')}\n      </td></tr>\n    </table>\n  </body>`;\n\n  correos.push({ json: { tipo: \"individual\", asesora, html } });\n\n  // Añadir al desglose general\n  resumenEquipo += `\n    <tr><td>\n      <p><b>🧍‍♀️ ${asesora}</b><br>\n      📥 Leads: ${leadsPerc}% (${d[\"Leads Realizados\"]}/${d[\"Leads Esperado\"]})<br>\n      📤 PA: ${paPerc}% (${d[\"PA Realizados\"]}/${d[\"PA Esperado\"]})<br>\n      💰 Ventas: ${ventasPerc}% (${d[\"Ventas Realizadas\"]}/${d[\"Ventas Esperado\"]})</p>\n      <hr style=\"border:0; border-top:1px dashed ${colorLinea}; margin:10px 0;\">\n    </td></tr>`;\n}\n\n// ====== CIERRE DEL RESUMEN GENERAL ======\nresumenEquipo += `\n    <tr><td>\n      <h3 style=\"color:${colorPrincipal};\">📊 Totales del equipo</h3>\n      <p>👥 Leads: <b>${totalRealizado.Leads}</b> / ${totalEsperado.Leads} (${totalLeadsPerc}%)<br>\n         📤 PA: <b>${totalRealizado.PA}</b> / ${totalEsperado.PA} (${totalPAPerc}%)<br>\n         💰 Ventas: <b>${totalRealizado.Ventas}</b> / ${totalEsperado.Ventas} (${totalVentasPerc}%)</p>\n      <hr style=\"border:0; border-top:1px solid ${colorLinea}; margin:16px 0;\">\n      <p style=\"text-align:center; font-size:12px; color:#999;\">\n        Reporte automatizado de <b>GarantiaYA – Canal No Tradicional</b><br>\n        ${new Date().toLocaleDateString('es-AR')}\n      </p>\n    </td></tr>\n  </table>\n</body>`;\n\n// Agregar correo general (para ti)\ncorreos.push({ json: { tipo: \"general\", html: resumenEquipo } });\n\n// ====== DEVOLVER ======\nreturn correos;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "0a1bf751-42f1-4266-9b55-b0d55cb1aa4b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "Resumen de la semana – 20 al 26 de Octubre",
+        "message": "={{ $json[\"html\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "c4af368e-4671-4d44-bfce-b4512930d602",
+      "name": "Send a message",
+      "webhookId": "a23d9470-7094-49ab-a83b-ffbcdd8f05d7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XxrLXTbFwtjLW15c",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bf2cfab4-d406-4418-868d-34713911ffb7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1c4316da3955a84220b9791dc95d8bdfc95a3051810fe38a4e771cc112fc1987"
+  },
+  "id": "19GbOcUYn1P8gC4O",
+  "tags": []
+}
