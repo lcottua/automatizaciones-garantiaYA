@@ -1,0 +1,148 @@
+{
+  "name": "Reporte diario de gestión – WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "16f55357-8ad6-4b5f-8d7b-cd671fb94756",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Gestion diaria",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Fecha",
+              "lookupValue": "28/10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "id": "24ec22c4-0ce5-4555-b769-fbfc73159729",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NaD29TWjH7ieyIFu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener datos desde el nodo anterior\nconst rows = items.map(item => item.json);\n\n// Agrupar por asesora\nconst resumen = {};\nfor (const row of rows) {\n  const asesora = row.Asesora.trim();\n  if (!resumen[asesora]) {\n    resumen[asesora] = { Refe: 0, PA: 0, Aprob: 0, Ventas: 0 };\n  }\n  resumen[asesora].Refe += Number(row.Referidos || 0);\n  resumen[asesora].PA += Number(row[\"Enviados a PA\"] || 0);\n  resumen[asesora].Aprob += Number(row.Aprobados || 0);\n  resumen[asesora].Ventas += Number(row.Ventas || 0);\n}\n\n// Calcular totales\nconst total = { Refe: 0, PA: 0, Aprob: 0, Ventas: 0 };\nfor (const a in resumen) {\n  total.Refe += resumen[a].Refe;\n  total.PA += resumen[a].PA;\n  total.Aprob += resumen[a].Aprob;\n  total.Ventas += resumen[a].Ventas;\n}\n\n// Crear HTML bonito\nlet html = `<h2>📊 Resumen de gestión – 27/10</h2>`;\n\nfor (const asesora in resumen) {\n  const r = resumen[asesora];\n  html += `\n  <p>💬 <strong>${asesora}</strong><br>\n  👥 Referidos: <b>${r.Refe}</b><br>\n  📤 Enviados a PA: <b>${r.PA}</b><br>\n  ✅ Aprobados: <b>${r.Aprob}</b><br>\n  💰 Ventas: <b>${r.Ventas}</b></p>`;\n}\n\nhtml += `<hr><h3>✨ Totales del día:</h3>\n<p>👥 <b>${total.Refe}</b> referidos<br>\n📤 <b>${total.PA}</b> enviados a PA<br>\n✅ <b>${total.Aprob}</b> aprobados<br>\n💰 <b>${total.Ventas}</b> ventas</p>\n<p>🔥 ¡Excelente trabajo equipo! Sigamos sumando. 💪</p>`;\n\nreturn [{ json: { html, total } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "027da162-9ea0-452c-b5be-cc94d8e26d08",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "Resumen de gestión 27-10",
+        "message": "={{ $json[\"html\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        0
+      ],
+      "id": "e5bb0fa7-a9f7-478e-9c50-dd61a157e67e",
+      "name": "Send a message",
+      "webhookId": "89f1d1e0-1e17-466d-933f-c518e8bd2329",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKq2Z5T0jD7HlzW",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "13412f50-0770-4f0e-859f-f047bae10820",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8d2656b1c10da4e0e680a887482e9bf280292fad8b83b10ee4d3c839f5789636"
+  },
+  "id": "ez1upD3dmGL0guy6",
+  "tags": []
+}
