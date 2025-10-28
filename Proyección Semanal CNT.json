@@ -1,0 +1,220 @@
+{
+  "name": "Proyección Semanal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                4
+              ],
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "9d265f9a-3361-4b07-bd3d-ad6b20d13dcb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1788232466,
+          "mode": "list",
+          "cachedResultName": "Proyeccion semanal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=1788232466"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "638aa090-a7a0-499f-b3f6-22a17bf78080",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NaD29TWjH7ieyIFu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = items.map(item => {\n  const json = item.json;\n\n  const leadsActual = Number(json[\"Leads actuales\"] || 0);\n  const paActual = Number(json[\"PA actuales\"] || 0);\n  const ventasActual = Number(json[\"Ventas actuales\"] || 0);\n\n  const metaLeads = Number(json[\"Meta Leads\"] || 1);\n  const metaPA = Number(json[\"Meta PA\"] || 1);\n  const metaVentas = Number(json[\"Meta Ventas\"] || 1);\n\n  const leadsPerc = ((leadsActual / metaLeads) * 100).toFixed(1);\n  const paPerc = ((paActual / metaPA) * 100).toFixed(1);\n  const ventasPerc = ((ventasActual / metaVentas) * 100).toFixed(1);\n\n  const faltanLeads = Math.max(metaLeads - leadsActual, 0);\n  const faltanPA = Math.max(metaPA - paActual, 0);\n  const faltanVentas = Math.max(metaVentas - ventasActual, 0);\n\n  return {\n    ...json,\n    CumplimientoLeads: parseFloat(leadsPerc),\n    CumplimientoPA: parseFloat(paPerc),\n    CumplimientoVentas: parseFloat(ventasPerc),\n    FaltanLeads: faltanLeads,\n    FaltanPA: faltanPA,\n    FaltanVentas: faltanVentas,\n  };\n});\n\nreturn data.map(d => ({ json: d }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "9214b8be-b9bf-4a11-a8b7-8b32535f9476",
+      "name": "Calculo %"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const d = item.json;\n\n  // Función para colorear las barras según porcentaje\n  const getColor = (p) => {\n    if (p >= 60) return \"#4CAF50\"; // verde\n    if (p >= 40) return \"#FFC107\"; // amarillo\n    return \"#F44336\"; // rojo\n  };\n\n  // Generar una barrita visual\n  const barra = (p) => `\n    <div style=\"width:100%; background:#ddd; border-radius:8px; height:10px; overflow:hidden; margin-top:4px;\">\n      <div style=\"width:${p}%; background:${getColor(p)}; height:10px;\"></div>\n    </div>\n    <span style=\"font-size:12px;\">${p.toFixed(1)}%</span>\n  `;\n\n  const html = `\n  <div style=\"font-family:Arial, sans-serif; background:#fafafa; border:1px solid #e0e0e0; border-radius:12px; padding:20px; max-width:600px; margin:auto; box-shadow:0 2px 8px rgba(0,0,0,0.05);\">\n    <h2 style=\"color:#e63946; text-align:center; margin-bottom:10px;\">📈 Proyección semanal – ${d.Asesora}</h2>\n\n    <p style=\"font-size:15px; text-align:center;\">\n      ¡Hola <strong>${d.Asesora}</strong>! 💪<br>\n      Así vas hasta ahora, ¡todavía hay tiempo para alcanzar la meta!\n    </p>\n\n    <table style=\"border-collapse:collapse; width:100%; text-align:center; margin-top:15px;\">\n      <thead style=\"background-color:#f1f1f1;\">\n        <tr>\n          <th style=\"padding:8px;\">Indicador</th>\n          <th style=\"padding:8px;\">Actual / Meta</th>\n          <th style=\"padding:8px;\">Progreso</th>\n          <th style=\"padding:8px;\">Faltan</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr>\n          <td><strong>Leads</strong></td>\n          <td>${d[\"Leads actuales\"]} / ${d[\"Meta Leads\"]}</td>\n          <td>${barra(d.CumplimientoLeads)}</td>\n          <td>${d[\"FaltanLeads\"]}</td>\n        </tr>\n        <tr>\n          <td><strong>PA</strong></td>\n          <td>${d[\"PA actuales\"]} / ${d[\"Meta PA\"]}</td>\n          <td>${barra(d.CumplimientoPA)}</td>\n          <td>${d[\"FaltanPA\"]}</td>\n        </tr>\n        <tr>\n          <td><strong>Ventas</strong></td>\n          <td>${d[\"Ventas actuales\"]} / ${d[\"Meta Ventas\"]}</td>\n          <td>${barra(d.CumplimientoVentas)}</td>\n          <td>${d[\"FaltanVentas\"]}</td>\n        </tr>\n      </tbody>\n    </table>\n\n    <div style=\"margin-top:20px; text-align:center;\">\n      <p style=\"font-size:14px;\">\n        👉 <strong>Meta personal de esta semana:</strong> ${d[\"Meta texto\"] || `${d[\"Meta Leads\"]} Leads | ${d[\"Meta PA\"]} PA | ${d[\"Meta Ventas\"]} Ventas`}\n\n        ✨ <strong>¡Vamos con todo a cerrar la semana fuerte!</strong>\n      </p>\n      <img src=\"https://drive.google.com/uc?export=view&id=1C7pT48gOgb3b3KhtxxEOQDqwTRnECQ3K\" width=\"120\" style=\"margin-top:10px;\">\n    </div>\n  </div>\n  `;\n\n  return { json: { html, email: d.Email, asesora: d.Asesora } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -176
+      ],
+      "id": "c50d596f-2788-49cf-a801-e82fb963226e",
+      "name": "Generar HTML x Asesora"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Totales para % de equipo\nlet totalLeads = 0, totalPA = 0, totalVentas = 0;\nlet totalMetaLeads = 0, totalMetaPA = 0, totalMetaVentas = 0;\n\n// Acumuladores para \"Meta promedio semanal\" TOMADA DE 'Meta texto'\nlet sumMetaTxtLeads = 0, sumMetaTxtPA = 0, sumMetaTxtVentas = 0;\n\n// Helpers\nconst getColor = (p) => (p >= 60 ? \"#4CAF50\" : p >= 40 ? \"#FFC107\" : \"#F44336\");\nconst parseMetaTexto = (s, fallback) => {\n  const m = String(s || \"\").match(/(\\d+)\\D+(\\d+)\\D+(\\d+)/); // e.g. \"25 Leads | 18 PA | 14 Ventas\"\n  if (m) return { leads: +m[1], pa: +m[2], ventas: +m[3] };\n  return fallback; // si no hay \"Meta texto\", usamos las metas numéricas\n};\n\n// Filas\nconst filas = items.map(item => {\n  const d = item.json;\n\n  const leadsA = Number(d[\"Leads actuales\"] || 0);\n  const paA = Number(d[\"PA actuales\"] || 0);\n  const ventasA = Number(d[\"Ventas actuales\"] || 0);\n\n  const leadsM = Number(d[\"Meta Leads\"] || 1);\n  const paM = Number(d[\"Meta PA\"] || 1);\n  const ventasM = Number(d[\"Meta Ventas\"] || 1);\n\n  // % ventas por fila recalculado\n  const percVentas = ventasM > 0 ? (ventasA / ventasM) * 100 : 0;\n\n  // Totales para barra general\n  totalLeads += leadsA;        totalMetaLeads += leadsM;\n  totalPA += paA;              totalMetaPA += paM;\n  totalVentas += ventasA;      totalMetaVentas += ventasM;\n\n  // Promedio desde \"Meta texto\"\n  const metaTxt = parseMetaTexto(d[\"Meta texto\"], { leads: leadsM, pa: paM, ventas: ventasM });\n  sumMetaTxtLeads += metaTxt.leads;\n  sumMetaTxtPA += metaTxt.pa;\n  sumMetaTxtVentas += metaTxt.ventas;\n\n  return `\n    <tr>\n      <td style=\"padding:8px;\">${d.Asesora || \"-\"}</td>\n      <td>${leadsA}/${leadsM}</td>\n      <td>${paA}/${paM}</td>\n      <td>${ventasA}/${ventasM}</td>\n      <td style=\"color:${getColor(percVentas)};\"><strong>${percVentas.toFixed(1)}%</strong></td>\n    </tr>\n  `;\n});\n\n// % total equipo y barra\nconst promVentas = totalMetaVentas > 0 ? (totalVentas / totalMetaVentas) * 100 : 0;\n\n// Promedio DESDE \"Meta texto\"\nconst n = Math.max(items.length, 1);\nconst avgTxtLeads = Math.round(sumMetaTxtLeads / n);\nconst avgTxtPA = Math.round(sumMetaTxtPA / n);\nconst avgTxtVentas = Math.round(sumMetaTxtVentas / n);\n\nconst barraHTML = `\n  <div style=\"width:100%; background:#ddd; border-radius:8px; height:12px; overflow:hidden;\">\n    <div style=\"width:${promVentas.toFixed(1)}%; background:${getColor(promVentas)}; height:12px;\"></div>\n  </div>\n  <span style=\"font-size:12px;\">${promVentas.toFixed(1)}%</span>\n`;\n\nconst html = `\n<div style=\"font-family:Arial, sans-serif; background:#fafafa; border:1px solid #e0e0e0; border-radius:12px; padding:20px; max-width:700px; margin:auto;\">\n  <h2 style=\"color:#e63946; text-align:center;\">📊 Proyección semanal – Resumen general</h2>\n  <p style=\"text-align:center;\">Reporte consolidado del equipo CNT</p>\n  <div style=\"margin:15px 0; text-align:center;\">${barraHTML}</div>\n\n  <table style=\"border-collapse:collapse; width:100%; text-align:center; margin-top:10px;\">\n    <thead style=\"background-color:#f1f1f1;\">\n      <tr>\n        <th>Asesora</th><th>Leads</th><th>PA</th><th>Ventas</th><th>% Ventas</th>\n      </tr>\n    </thead>\n    <tbody>${filas.join(\"\")}</tbody>\n  </table>\n\n  <div style=\"margin-top:20px; text-align:center;\">\n    <p><strong>Total equipo:</strong> ${totalVentas}/${totalMetaVentas} Ventas (${promVentas.toFixed(1)}%)</p>\n    <p style=\"font-size:14px;\">👉 <strong>Meta promedio semanal:</strong> ${avgTxtLeads} Leads | ${avgTxtPA} PA | ${avgTxtVentas} Ventas</p>\n    <img src=\"https://drive.google.com/uc?export=view&id=1C7pT48gOgb3b3KhtxxEOQDqwTRnECQ3K\" width=\"120\" style=\"margin-top:10px;\">\n  </div>\n</div>\n`;\n\nreturn [{ json: { html } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        48
+      ],
+      "id": "fb1f1708-6cd4-466d-9c7e-ce584dfb8db6",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "=📊 Proyección semanal – {{ $json[\"asesora\"] }}",
+        "message": "={{ $json[\"html\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        -176
+      ],
+      "id": "1743b29c-6318-4f3e-b2a9-a4b5e2da9cac",
+      "name": "Mail a Asesoras",
+      "webhookId": "e7a88072-4c1f-4165-86f5-28ef4e9d67f2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKq2Z5T0jD7HlzW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "📊 Proyección general semanal – Equipo CNT",
+        "message": "={{ $json[\"html\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        48
+      ],
+      "id": "8478e4cf-ad19-40ab-8a83-0c9abe3184a1",
+      "name": "Mail General",
+      "webhookId": "6eef7ded-6ea1-4d62-9d61-508915a6aaa0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKq2Z5T0jD7HlzW",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Calculo %",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculo %": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generar HTML x Asesora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar HTML x Asesora": {
+      "main": [
+        [
+          {
+            "node": "Mail a Asesoras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Mail General",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4456b248-5cbb-4cd4-a6d6-1f0faf229081",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8d2656b1c10da4e0e680a887482e9bf280292fad8b83b10ee4d3c839f5789636"
+  },
+  "id": "PaisjSQb9y8TghmM",
+  "tags": []
+}
