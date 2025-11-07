@@ -1,0 +1,197 @@
+{
+  "name": "Resumen IA – Gestión semanal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8,
+              "triggerAtMinute": {}
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7b436c72-8b3b-4089-85ae-2174537846f2",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 688710582,
+          "mode": "list",
+          "cachedResultName": "Gestion semanal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=688710582"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Semana",
+              "lookupValue": "=27/10-31/10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "32d98cb9-5556-47fe-aae1-f0a8fb7d4394",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NaD29TWjH7ieyIFu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "📊 Resumen IA – Inicio de semana (Equipo CNT)",
+        "message": "=<div style=\"font-family:Arial,sans-serif; background:#fafafa; border-radius:16px; border:1px solid #e5e5e5; padding:24px; max-width:700px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.05);\">\n  \n  <h2 style=\"color:#e63946; text-align:center;\">📈 Cierre semanal – Equipo CNT</h2>\n  <p style=\"font-size:14px; color:#555; text-align:center;\">Resumen de resultados y análisis de la semana</p>\n\n  <div style=\"background:#fff; border-radius:12px; padding:20px; border:1px solid #f0f0f0;\">\n {{ $('Preparar datos IA').item.json.tablaHTML }}\n{{ $('Preparar datos IA').item.json.resumenHTML }}\n  </div>\n\n  <hr style=\"border:none; border-top:1px solid #eee; margin:25px 0;\">\n\n  <div style=\"background:#ffffff; border-radius:12px; padding:20px; font-size:15px; line-height:1.6; color:#333;\">\n  {{ $json.message.content.mensaje }}\n  </div>\n\n  <div style=\"text-align:center; margin-top:10px;\">\n    <p style=\"font-size:13px; color:#777;\">✨ ¡Gran cierre de semana, equipo! A disfrutar los logros y prepararnos para la próxima 💪</p>\n    <img src=\"https://drive.google.com/uc?export=view&id=1C7pT48gOgb3b3KhtxxEOQDqwTRnECQ3K\" width=\"110\" style=\"margin-top:10px;\">\n  </div>\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "29c06dfa-2208-42e7-9ed9-594fdee2d3c1",
+      "name": "Send a message",
+      "webhookId": "b867c081-ef2e-465c-b846-ce6d62ab0a15",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKq2Z5T0jD7HlzW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Eres un analista comercial de GarantiaYA.  \nGenera un mensaje breve de cierre de semana para el equipo CNT con tono motivacional y profesional.  \nUsa los siguientes datos globales:  \n{{ $json[\"textoIA\"] }}\n\n👉 Incluye:\n- Una apertura que reconozca los logros del equipo.  \n- Una observación sobre oportunidades de mejora.  \n- Un cierre con energía y optimismo, estilo líder comercial venezolano.  \nNo repitas los porcentajes exactos, solo interpreta el rendimiento.\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        592,
+        0
+      ],
+      "id": "ef5f7050-3aee-4c85-8740-090aee5512f6",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "gyXVqdyL5B9VLfIL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calcular totales y generar tabla de resultados\nlet totalLeadsE = 0, totalLeadsR = 0;\nlet totalPAE = 0, totalPAR = 0;\nlet totalVentasE = 0, totalVentasR = 0;\n\nlet filasHTML = \"\";\n\nfor (const item of items) {\n  const d = item.json;\n\n  const leadsPerc = d[\"Leads Esperado\"] ? (d[\"Leads Realizados\"] / d[\"Leads Esperado\"]) * 100 : 0;\n  const paPerc = d[\"PA Esperado\"] ? (d[\"PA Realizados\"] / d[\"PA Esperado\"]) * 100 : 0;\n  const ventasPerc = d[\"Ventas Esperado\"] ? (d[\"Ventas Realizadas\"] / d[\"Ventas Esperado\"]) * 100 : 0;\n\n  totalLeadsE += Number(d[\"Leads Esperado\"] || 0);\n  totalLeadsR += Number(d[\"Leads Realizados\"] || 0);\n  totalPAE += Number(d[\"PA Esperado\"] || 0);\n  totalPAR += Number(d[\"PA Realizados\"] || 0);\n  totalVentasE += Number(d[\"Ventas Esperado\"] || 0);\n  totalVentasR += Number(d[\"Ventas Realizadas\"] || 0);\n\n  filasHTML += `\n    <tr>\n      <td style=\"padding:8px; text-align:left;\">${d.Asesora}</td>\n      <td>${d[\"Leads Realizados\"]}/${d[\"Leads Esperado\"]} (${leadsPerc.toFixed(1)}%)</td>\n      <td>${d[\"PA Realizados\"]}/${d[\"PA Esperado\"]} (${paPerc.toFixed(1)}%)</td>\n      <td>${d[\"Ventas Realizadas\"]}/${d[\"Ventas Esperado\"]} (${ventasPerc.toFixed(1)}%)</td>\n    </tr>\n  `;\n}\n\nconst leadsTot = totalLeadsE ? (totalLeadsR / totalLeadsE) * 100 : 0;\nconst paTot = totalPAE ? (totalPAR / totalPAE) * 100 : 0;\nconst ventasTot = totalVentasE ? (totalVentasR / totalVentasE) * 100 : 0;\n\nconst tablaHTML = `\n<table style=\"border-collapse:collapse; width:100%; text-align:center; margin-top:10px; font-size:14px;\">\n  <thead style=\"background-color:#f5f5f5;\">\n    <tr>\n      <th style=\"padding:8px; text-align:left;\">Asesora</th>\n      <th>Leads</th>\n      <th>PA</th>\n      <th>Ventas</th>\n    </tr>\n  </thead>\n  <tbody>${filasHTML}</tbody>\n</table>\n`;\n\nconst resumenHTML = `\n<div style=\"text-align:center; margin-top:15px; font-size:15px; color:#333;\">\n  <strong>Totales del equipo:</strong><br>\n  Leads: ${totalLeadsR}/${totalLeadsE} (${leadsTot.toFixed(1)}%) |\n  PA: ${totalPAR}/${totalPAE} (${paTot.toFixed(1)}%) |\n  Ventas: ${totalVentasR}/${totalVentasE} (${ventasTot.toFixed(1)}%)\n</div>\n`;\n\nreturn [{\n  json: {\n    tablaHTML,\n    resumenHTML,\n    textoIA: `Resultados semanales:\n    Leads: ${leadsTot.toFixed(1)}%\n    PA: ${paTot.toFixed(1)}%\n    Ventas: ${ventasTot.toFixed(1)}%\n    `,\n    leadsTot, paTot, ventasTot\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "7b501554-459c-47b9-8b9d-c69ae30cdc88",
+      "name": "Preparar datos IA"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos IA": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bf5a4c4b-f44c-4c00-af50-6603ae397f26",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8d2656b1c10da4e0e680a887482e9bf280292fad8b83b10ee4d3c839f5789636"
+  },
+  "id": "BJ8mbwzSkkd8Wgk3",
+  "tags": []
+}
