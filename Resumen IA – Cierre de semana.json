@@ -1,0 +1,197 @@
+{
+  "name": "Resumen IA – Cierre de semana",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                5
+              ],
+              "triggerAtHour": 11,
+              "triggerAtMinute": null
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a44a4fa4-770c-4b35-8cb4-b0feaecdf13f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY",
+          "mode": "list",
+          "cachedResultName": "Gestión Diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 688710582,
+          "mode": "list",
+          "cachedResultName": "Gestion semanal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tisktoE9YjDKAoMelC2H7ogiOqpNA5UO2KO0Nb49VMY/edit#gid=688710582"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Semana",
+              "lookupValue": "=01/11-09/11"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7018afda-66f8-4343-a803-fe38881e7bca",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NaD29TWjH7ieyIFu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lizmar@garantiaya.com.ar",
+        "subject": "📊 Cierre de semana – Equipo CNT",
+        "message": "=<div style=\"font-family:Arial,sans-serif; background:#fafafa; border-radius:16px; border:1px solid #e5e5e5; padding:24px; max-width:700px; margin:auto; box-shadow:0 2px 6px rgba(0,0,0,0.05);\">\n  \n  <h2 style=\"color:#e63946; text-align:center;\">📈 Cierre semanal – Equipo CNT</h2>\n  <p style=\"font-size:14px; color:#555; text-align:center;\">Resumen de resultados y análisis de la semana</p>\n\n  <div style=\"background:#fff; border-radius:12px; padding:20px; border:1px solid #f0f0f0;\">\n {{ $('Preparar datos IA').item.json.tablaHTML }}\n{{ $('Preparar datos IA').item.json.resumenHTML }}\n  </div>\n\n  <hr style=\"border:none; border-top:1px solid #eee; margin:25px 0;\">\n\n  <div style=\"background:#ffffff; border-radius:12px; padding:20px; font-size:15px; line-height:1.6; color:#333;\">\n{{ $json.message.content.mensaje }}\n  </div>\n\n  <div style=\"text-align:center; margin-top:10px;\">\n    <p style=\"font-size:13px; color:#777;\">✨ ¡Gran cierre de semana, equipo! A disfrutar los logros y prepararnos para la próxima 💪</p>\n    <img src=\"https://drive.google.com/uc?export=view&id=1C7pT48gOgb3b3KhtxxEOQDqwTRnECQ3K\" width=\"110\" style=\"margin-top:10px;\">\n  </div>\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "c827e1c9-0933-48ae-8485-6b6bfd3c5978",
+      "name": "Send a message",
+      "webhookId": "1e86c892-4c4a-4809-bd92-41218a4c68cb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKq2Z5T0jD7HlzW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Eres un analista comercial de GarantiaYA con tono profesional, empático y motivacional.  \nTu tarea es redactar un mensaje de cierre de semana para el equipo CNT con base en los siguientes resultados:\n{{ $json[\"textoIA\"] }}\n\n👉 Instrucciones:\n1️⃣ Analiza si los porcentajes de cumplimiento (Leads, PA y Ventas) están por encima o por debajo del 100%.  \n   - Si los valores son altos (≥80%), usa un tono de reconocimiento y celebración.  \n   - Si los valores están por debajo (menor a 80%), usa un tono motivacional y de análisis constructivo: reconoce el esfuerzo, pero destaca las oportunidades de mejora.  \n   - Si uno o dos indicadores bajaron, menciona eso con empatía (“tuvimos una baja en PA, pero el enfoque está en repuntar la próxima semana”).  \n\n2️⃣ Estructura del mensaje:\n- **Introducción:** resumen breve del rendimiento general (usa porcentajes solo cuando sea necesario).  \n- **Análisis:** comenta logros, aprendizajes o áreas que necesitan impulso.  \n- **Cierre:** mensaje inspirador y positivo, destacando el compromiso del equipo y el plan de mejora para la próxima semana.\n\n3️⃣ Tono y estilo:\n- Cercano, humano y optimista.  \n- Lenguaje claro, sin frases triunfalistas si los resultados no lo ameritan.  \n- Usa expresiones naturales, con un toque de energía venezolana, pero manteniendo profesionalismo.  \n- Máximo 3 párrafos cortos.\n\nEjemplos de cierres según contexto:\n- Si fue una semana floja: *“Sabemos que esta semana fue un reto, pero lo importante es que seguimos aprendiendo y afinando la estrategia. La próxima la rompemos 💪.”*  \n- Si fue una semana equilibrada: *“Hubo avances sólidos y sabemos dónde mejorar. Cada ajuste nos acerca más al resultado que queremos.”*  \n- Si fue una semana top: *“Increíble semana equipo, seguimos marcando la diferencia con foco y constancia. ¡A seguir brillando!”*\n\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        592,
+        0
+      ],
+      "id": "dd4eb202-336f-4b11-b40d-4f46fd13e536",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "gyXVqdyL5B9VLfIL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calcular totales y generar tabla de resultados\nlet totalLeadsE = 0, totalLeadsR = 0;\nlet totalPAE = 0, totalPAR = 0;\nlet totalVentasE = 0, totalVentasR = 0;\n\nlet filasHTML = \"\";\n\nfor (const item of items) {\n  const d = item.json;\n\n  const leadsPerc = d[\"Leads Esperado\"] ? (d[\"Leads Realizados\"] / d[\"Leads Esperado\"]) * 100 : 0;\n  const paPerc = d[\"PA Esperado\"] ? (d[\"PA Realizados\"] / d[\"PA Esperado\"]) * 100 : 0;\n  const ventasPerc = d[\"Ventas Esperado\"] ? (d[\"Ventas Realizadas\"] / d[\"Ventas Esperado\"]) * 100 : 0;\n\n  totalLeadsE += Number(d[\"Leads Esperado\"] || 0);\n  totalLeadsR += Number(d[\"Leads Realizados\"] || 0);\n  totalPAE += Number(d[\"PA Esperado\"] || 0);\n  totalPAR += Number(d[\"PA Realizados\"] || 0);\n  totalVentasE += Number(d[\"Ventas Esperado\"] || 0);\n  totalVentasR += Number(d[\"Ventas Realizadas\"] || 0);\n\n  filasHTML += `\n    <tr>\n      <td style=\"padding:8px; text-align:left;\">${d.Asesora}</td>\n      <td>${d[\"Leads Realizados\"]}/${d[\"Leads Esperado\"]} (${leadsPerc.toFixed(1)}%)</td>\n      <td>${d[\"PA Realizados\"]}/${d[\"PA Esperado\"]} (${paPerc.toFixed(1)}%)</td>\n      <td>${d[\"Ventas Realizadas\"]}/${d[\"Ventas Esperado\"]} (${ventasPerc.toFixed(1)}%)</td>\n    </tr>\n  `;\n}\n\nconst leadsTot = totalLeadsE ? (totalLeadsR / totalLeadsE) * 100 : 0;\nconst paTot = totalPAE ? (totalPAR / totalPAE) * 100 : 0;\nconst ventasTot = totalVentasE ? (totalVentasR / totalVentasE) * 100 : 0;\n\nconst tablaHTML = `\n<table style=\"border-collapse:collapse; width:100%; text-align:center; margin-top:10px; font-size:14px;\">\n  <thead style=\"background-color:#f5f5f5;\">\n    <tr>\n      <th style=\"padding:8px; text-align:left;\">Asesora</th>\n      <th>Leads</th>\n      <th>PA</th>\n      <th>Ventas</th>\n    </tr>\n  </thead>\n  <tbody>${filasHTML}</tbody>\n</table>\n`;\n\nconst resumenHTML = `\n<div style=\"text-align:center; margin-top:15px; font-size:15px; color:#333;\">\n  <strong>Totales del equipo:</strong><br>\n  Leads: ${totalLeadsR}/${totalLeadsE} (${leadsTot.toFixed(1)}%) |\n  PA: ${totalPAR}/${totalPAE} (${paTot.toFixed(1)}%) |\n  Ventas: ${totalVentasR}/${totalVentasE} (${ventasTot.toFixed(1)}%)\n</div>\n`;\n\nreturn [{\n  json: {\n    tablaHTML,\n    resumenHTML,\n    textoIA: `Resultados semanales:\n    Leads: ${leadsTot.toFixed(1)}%\n    PA: ${paTot.toFixed(1)}%\n    Ventas: ${ventasTot.toFixed(1)}%\n    `,\n    leadsTot, paTot, ventasTot\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "33e16f05-642b-4a49-ad13-abd77bcf6c52",
+      "name": "Preparar datos IA"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos IA": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd7bed9e-760f-4b55-8f99-62cef51452f5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8d2656b1c10da4e0e680a887482e9bf280292fad8b83b10ee4d3c839f5789636"
+  },
+  "id": "0Qi1QJv5mub6DjvO",
+  "tags": []
+}
